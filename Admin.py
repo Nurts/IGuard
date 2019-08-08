@@ -36,11 +36,13 @@ class AdminWindow(tk.Tk):
 
         self.camBtn.click()
 
+        
+
         self.cam_frame = CamerasFrame(self)
         self.cam_frame.pack(side = tk.TOP, fill = 'both', expand = True)
 
-
-        self.users_frame = UsersList(self, bg = '#3A79D1')
+        self.users_frame = UsersList(self, bg = '#3A79D1', list_of_users = self.cam_frame.list_of_users)
+        
 
         # self.main_frame =  ScrollFrame(self.window, relief = tk.FLAT, width = 500, height = 500)
         # self.main_frame.pack(fill = tk.BOTH, expand = True)
@@ -83,6 +85,7 @@ class CamerasFrame(tk.Frame):
     def __init__(self, parent, bg = '#3A79D1',  **kwargs):
         tk.Frame.__init__(self, parent, bg = bg, **kwargs)
 
+        self.list_of_users = []
         self.scrollable = VerticalScrolledFrame(self, bg = bg, **kwargs)
         self.scrollable.interior.configure(bg = bg)
         self.scrollable.pack(side = tk.BOTTOM, fill = tk.BOTH, expand = True)
@@ -145,7 +148,7 @@ class CamerasFrame(tk.Frame):
         self.user_label = tk.Label( self.vid_form, text = 'Owner: ', font = 'Sans 11', bg = '#3A79D1', fg = 'white')
         self.user_label.pack(side = tk.LEFT)
 
-        list_of_items = ["Cordell Cannata", "Lacey Naples", "Zachery Manigault", "Regan Brunt", "Mario Hilgefort", "Austin Phong", "Moises Saum", "Willy Neill", "Rosendo Sokoloff", "Salley Christenberry", "Toby Schneller", "Angel Buchwald", "Nestor Criger", "Arie Jozwiak", "Nita Montelongo", "Clemencia Okane", "Alison Scaggs", "Von Petrella", "Glennie Gurley", "Jamar Callender", "Titus Wenrich", "Chadwick Liedtke", "Sharlene Yochum", "Leonida Mutchler", "Duane Pickett", "Morton Brackins", "Ervin Trundy", "Antony Orwig", "Audrea Yutzy", "Michal Hepp", "Annelle Hoadley", "Hank Wyman", "Mika Fernandez", "Elisa Legendre", "Sade Nicolson", "Jessie Yi", "Forrest Mooneyhan", "Alvin Widell", "Lizette Ruppe", "Marguerita Pilarski", "Merna Argento", "Jess Daquila", "Breann Bevans", "Melvin Guidry", "Jacelyn Vanleer", "Jerome Riendeau", "Iraida Nyquist", "Micah Glantz", "Dorene Waldrip", "Fidel Garey", "Vertie Deady", "Rosalinda Odegaard", "Chong Hayner", "Candida Palazzolo", "Bennie Faison", "Nova Bunkley", "Francis Buckwalter", "Georgianne Espinal", "Karleen Dockins", "Hertha Lucus", "Ike Alberty", "Deangelo Revelle", "Juli Gallup", "Wendie Eisner", "Khalilah Travers", "Rex Outman", "Anabel King", "Lorelei Tardiff", "Pablo Berkey", "Mariel Tutino", "Leigh Marciano", "Ok Nadeau", "Zachary Antrim", "Chun Matthew", "Golden Keniston", "Anthony Johson", "Rossana Ahlstrom", "Amado Schluter", "Delila Lovelady", "Josef Belle", "Leif Negrete", "Alec Doss", "Darryl Stryker", "Michael Cagley", "Sabina Alejo", "Delana Mewborn", "Aurelio Crouch", "Ashlie Shulman", "Danielle Conlan", "Randal Donnell", "Rheba Anzalone", "Lilian Truax", "Weston Quarterman", "Britt Brunt", "Leonie Corbett", "Monika Gamet", "Ingeborg Bello", "Angelique Zhang", "Santiago Thibeau", "Eliseo Helmuth"]
+        list_of_items = self.list_of_users
         self.combobox = Combobox_Autocomplete(self.vid_form, list_of_items, relief = tk.RAISED, font = 'Sans 11', bg = 'white')
         self.combobox.pack(side = tk.LEFT)
 

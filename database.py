@@ -8,6 +8,7 @@ class Database:
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS violations (
                 id INTEGER PRIMARY KEY,
+                cam_id INTEGER,
                 frame_path TEXT,
                 status boolean DEFAUL FALSE,
                 created_time BIGINT
@@ -33,11 +34,10 @@ class Database:
     def __del__(self):
         self.conn.close()
 
-    def insert(self, frame_path):
+    def insert(self, cam_id, frame_path):
         now = int(time.time())
-        id  = now * 10000000 + random.randint(0, 10000)
         try:
-            self.conn.execute("INSERT INTO violations VALUES(?, ?, ?, ?);", (id, frame_path, False, now))
+            self.conn.execute("INSERT INTO violations (cam_id, frame_path, status, created_time) VALUES(?, ?, ?, ?);", (cam_id, frame_path, False, now))
             self.conn.commit()
         except:
             print("Faled to insert to Database")

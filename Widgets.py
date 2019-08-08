@@ -1,5 +1,31 @@
 import tkinter as tk
 
+class SelectableLabel(tk.Text):
+
+    def __init__(self, parent, text,**kwargs):
+        tk.Text.__init__(self, parent, **kwargs)
+        self.insert(1.0, text)
+        self.configure(state = "disabled", inactiveselectbackground = self.cget("selectbackground"), bg = parent.cget('bg'), relief=tk.FLAT)
+
+class BlinkingLabel(tk.Label):
+
+    def __init__(self, parent, first_color, second_color, period = 500, **kwargs):
+        tk.Label.__init__(self, parent, bg = first_color, **kwargs)
+
+        self.period = 500
+        self.first_color = first_color
+        self.second_color = second_color
+        self.on = True
+        self.after(self.period, self.blink)
+    
+    def blink(self):
+        if(self.on):
+            self.configure(bg = self.second_color)
+        else:
+            self.configure(bg = self.first_color)
+        self.on = not self.on
+        self.after(self.period, self.blink)
+
 class FocusButton(tk.Button):
     def on_enter(self, event):
         self.configure(bg = self.in_color)

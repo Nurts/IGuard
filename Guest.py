@@ -2,7 +2,7 @@ import tkinter as tk
 import platform
 import PIL.Image, PIL.ImageTk
 from VerticalScrolledFrame import VerticalScrolledFrame
-from Widgets import ClickableLabel
+from Widgets import ClickableLabel, BlinkingLabel
 from tkinter import messagebox
 from VideoCap import Video
 from database import Database
@@ -19,7 +19,8 @@ class GuestApp(tk.Tk):
             "title" : "IGuard Desktop",
             "bg_color" : "white",
             "quit_text" : "Do you want to quit ?",
-            "alerts_label" : "Here are the alerts"
+            "alerts_label" : "Here are the alerts",
+            'alert_cam_text' : "Violation detected on this camera (click here to close)" 
         }
 
         self.title(self.window_config["title"])
@@ -82,7 +83,7 @@ class GuestApp(tk.Tk):
             self.vidListCommand(0)
         
         self.panel = tk.Label(self.vid_frame.interior, bg = "#3A79D1")
-        self.panel.pack(side = tk.TOP, fill = tk.BOTH, expand = True)
+        self.panel.pack(side = tk.BOTTOM, fill = tk.BOTH, expand = True)
         
     def vidListCommand(self, idx):
         if(idx == self.on_screen):
@@ -107,7 +108,7 @@ class GuestApp(tk.Tk):
             self.panel.configure(image = img)
             self.panel.image = img
 
-            self.after(self.delay, self.updateVid)
+            self.panel.after(self.delay, self.updateVid)
 
     def on_closing(self):
         if messagebox.askokcancel("Quit", self.window_config['quit_text']):
@@ -121,8 +122,8 @@ class GuestApp(tk.Tk):
         self.alert_label.pack(side = tk.TOP)
         all_data = self.db.select_all()
         self.row_number = len(all_data)
-        for i, data in enumerate(all_data):
-            note = Notifications(self.alert_frame.interior, self.db, from_db = True, db_data = data)
+        for data in all_data:
+            note = Notifications(self.alert_frame.interior, self.db, db_data = data)
             note.button.pack(expand = 1, side = tk.BOTTOM)
             self.notes.append(note)
         
@@ -132,10 +133,17 @@ class GuestApp(tk.Tk):
         
         for row in data_rows:
             self.row_number += 1
-            note = Notifications(self.alert_frame.interior, self.db, from_db = True, db_data = row)
+            note = Notifications(self.alert_frame.interior, self.db, db_data = row)
             note.button.pack(expand = 1, side = tk.BOTTOM)
-            self.notes.append(note)       
+            self.notes.append(note)
+            self.alertOnCam(row[1])
         
         self.after(1000, self.check_alert)
 
-    
+    def alertOnCam(self, id):
+        self.vidListCommand(id)
+
+        alert_cam_label = BlinkingLabel(self.vid_frame.interior, first_color = '#ff3838', second_color = '#871a1a', text = self.window_config['alert_cam_text'], fg = 'white', font = 'Sans 13', height = 3)
+        alert_cam_label.pack(side = tk.TOP, fill = tk.X, expand = True)
+        alert_cam_label.bind("<Button-1>", lambda e : alert_cam_label.destroy())
+        # alert_cam_label.after(15000, alert_cam_label.destroy)

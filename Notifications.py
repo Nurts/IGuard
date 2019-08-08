@@ -3,15 +3,12 @@ import time
 import subprocess, os, platform
 from database import Database
 class Notifications():
-    def __init__(self, parent, database,  from_db = False, db_data = None, filepath = ""):
+    def __init__(self, parent, database, db_data = None, filepath = ""):
         
         self.filepath = filepath
         self.db = database
         
-        if from_db:
-            (self.id, self.filepath, self.status, self.created_time) = db_data
-        else:
-            (self.id, self.status, self.created_time) = database.insert(filepath)
+        (self.id, self.cam_id, self.filepath, self.status, self.created_time) = db_data
 
         strtime = time.strftime('%H:%M:%S, %d.%m.%Y', time.localtime(self.created_time))
         
