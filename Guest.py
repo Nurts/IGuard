@@ -1,8 +1,7 @@
 import tkinter as tk
 import platform
 import PIL.Image, PIL.ImageTk
-from VerticalScrolledFrame import VerticalScrolledFrame
-from Widgets import ClickableLabel, BlinkingLabel
+from Widgets import ClickableLabel, BlinkingLabel, VerticalScrolledFrame
 from tkinter import messagebox
 from VideoCap import Video
 from database import Database
@@ -12,14 +11,16 @@ import cv2
 
 class GuestApp(tk.Tk):
 
-    def __init__(self):
+    def __init__(self, restart_var):
         tk.Tk.__init__(self)
+        self.restart_var = restart_var
         
         self.window_config = {
             "title" : "IGuard Desktop",
             "bg_color" : "white",
             "quit_text" : "Do you want to quit ?",
-            "alerts_label" : "Here are the alerts",
+            "alerts_label" : "Alerts",
+            "cameras-text" : "Cameras",
             'alert_cam_text' : "Violation detected on this camera (click here to close)" 
         }
 
@@ -40,7 +41,7 @@ class GuestApp(tk.Tk):
         self.panedwindow.pack(fill = tk.BOTH, expand = True)
         
         self.list_frame = VerticalScrolledFrame(self.panedwindow, relief = tk.FLAT, bg = self.window_config["bg_color"])
-        self.vid_frame = VerticalScrolledFrame(self.panedwindow, relief = tk.FLAT, bg = self.window_config["bg_color"])
+        self.vid_frame = tk.Frame(self.panedwindow, relief = tk.FLAT, bg = 'white')
         self.alert_frame = VerticalScrolledFrame(self.panedwindow, relief = tk.FLAT, bg = self.window_config["bg_color"])
         
         self.loadVideo()
@@ -61,29 +62,34 @@ class GuestApp(tk.Tk):
         
     
     def loadVideo(self):
-        with open('config.json') as f:
-            self.config = json.load(f)
+        try:
+            with open('config.json') as f:
+                self.config = json.load(f)
+        except:
+            messagebox.showerror("Error", "Couldn't fint config.json. Please, contact to developers !")
+            return
+        cameras = self.config["cameras"]
         
-        video_sources = self.config["video_sources"]
-        points_sources = self.config["points_sources"]
-
+        label = tk.Label(self.list_frame.interior, text = self.window_config['cameras-text'])
+        label.pack(side = tk.TOP, fill = tk.X)
         self.video_list = []
         self.videos = []
 
-        for i, video_source in enumerate(video_sources):
-            video_text = video_source.split("/")[-1]
+        for i, camera in enumerate(cameras):
+            video_text = camera['video_source'].split("/")[-1]
             label = ClickableLabel(self.list_frame.interior, in_color = '#005673', out_color = '#3A79D1', clicked_color = self.window_config['bg_color'], text = video_text, font = "Arial 13", heigh = 5)
             label.bind("<Button-1>", lambda e, i = i : self.vidListCommand(i))
             label.pack(side = tk.TOP, fill = tk.X)
             self.video_list.append(label)
-            self.videos.append( Video(video_source, points_sources[i]) )
+            self.videos.append( Video(camera['video_source'], camera['line_source']) )
 
         self.on_screen = -1
         if(len(self.video_list) > 0):
             self.vidListCommand(0)
         
-        self.panel = tk.Label(self.vid_frame.interior, bg = "#3A79D1")
-        self.panel.pack(side = tk.BOTTOM, fill = tk.BOTH, expand = True)
+        self.panel = tk.Label(self.vid_frame, bg = "#3A79D1")
+        self.panel.pack(side = tk.TOP, fill = tk.X, expand = False)
+
         
     def vidListCommand(self, idx):
         if(idx == self.on_screen):
@@ -108,11 +114,14 @@ class GuestApp(tk.Tk):
             self.panel.configure(image = img)
             self.panel.image = img
 
-            self.panel.after(self.delay, self.updateVid)
+            self.vid_after_id = self.panel.after(self.delay, self.updateVid)
 
     def on_closing(self):
         if messagebox.askokcancel("Quit", self.window_config['quit_text']):
+            self.after_cancel(self.alert_after_id)
+            self.panel.after_cancel(self.vid_after_id)
             self.destroy()
+            self.restart_var[0] = True
         
 
     def loadNotifications(self):
@@ -138,12 +147,13 @@ class GuestApp(tk.Tk):
             self.notes.append(note)
             self.alertOnCam(row[1])
         
-        self.after(1000, self.check_alert)
+        self.alert_after_id = self.after(1000, self.check_alert)
+        
 
     def alertOnCam(self, id):
         self.vidListCommand(id)
 
-        alert_cam_label = BlinkingLabel(self.vid_frame.interior, first_color = '#ff3838', second_color = '#871a1a', text = self.window_config['alert_cam_text'], fg = 'white', font = 'Sans 13', height = 3)
+        alert_cam_label = BlinkingLabel(self.vid_frame, first_color = '#ff3838', second_color = '#871a1a', text = self.window_config['alert_cam_text'], fg = 'white', font = 'Sans 13', height = 3)
         alert_cam_label.pack(side = tk.TOP, fill = tk.X, expand = True)
         alert_cam_label.bind("<Button-1>", lambda e : alert_cam_label.destroy())
         # alert_cam_label.after(15000, alert_cam_label.destroy)

@@ -1,23 +1,31 @@
 import tkinter as tk
 import requests
 import json
-from Widgets import PlaceholderEntry, PasswordEntry, FocusButton, SelectableLabel
-from VerticalScrolledFrame import VerticalScrolledFrame
+from Widgets import PlaceholderEntry, PasswordEntry, FocusButton, SelectableLabel, VerticalScrolledFrame
+from tkinter import messagebox
+import Errors
 
 class UsersList(tk.Frame):
 
-    def __init__(self, parent, list_of_users, **kwargs):
+    def __init__(self, parent, list_of_users, list_of_ids, session, **kwargs):
         tk.Frame.__init__(self, parent, **kwargs)
         
+        self.session = session
+        self.list_of_ids = list_of_ids
         self.list_of_users = list_of_users
         self.addRegFrame()
 
         self.addUserList()
 
     def addUserList(self):
-        url = "https://iguard-backend.herokuapp.com/api/v1/KDY7AehrzAlOVJd-i09GVA/users"
-        response = requests.get(url = url)
-
+        
+        try:
+            url = "https://iguard-backend.herokuapp.com/api/v1/KDY7AehrzAlOVJd-i09GVA/users"
+            response = self.session.get(url = url)
+        except:
+            Errors.networkConnectionError()
+            return
+        
         self.user_list = VerticalScrolledFrame(self, bg = 'white')
         self.user_list.interior.configure(bg = 'white')
         self.user_list.pack(side = tk.BOTTOM, fill = 'both', expand = True)
@@ -32,6 +40,7 @@ class UsersList(tk.Frame):
         user_frame = tk.Frame(self.user_list.interior, bg = '#3A79D1')
 
         self.list_of_users.append(user['login'])
+        self.list_of_ids.append(user['id'])
 
         login_label = tk.Label(user_frame, text = "login: {}".format(user['login']), font = 'Sans 11', height = 2, bg = '#3A79D1', fg = 'white')
         login_label.pack(side = tk.LEFT, fill = tk.Y, expand = True)
@@ -43,11 +52,42 @@ class UsersList(tk.Frame):
         email_label.pack(side = tk.LEFT, fill = tk.Y, expand = True)
 
         delete_btn = FocusButton(user_frame, text = 'Delete', in_color = '#f05454', out_color = '#c90404', fg = 'white', relief = tk.FLAT)
+        delete_btn.configure(command = lambda id = user['id'], login = user['login'] : self.deleteUser(id, login))
         delete_btn.pack(side = tk.RIGHT, fill = tk.Y, expand = False, pady = 10, padx = 10)
 
         user_frame.pack(side = tk.BOTTOM, fill = tk.X, expand = True, padx = 10, pady = 10)
 
         self.user_frames.append(user_frame)
+    
+    def findAndShowUser(self, username):
+        for user_frame in self.user_frames:
+            user_frame.pack_forget()
+        
+        
+        for i in range(len(self.list_of_users)):
+            if username in self.list_of_users[i]:
+                self.user_frames[i].pack(side = tk.BOTTOM, fill = tk.X, expand = True, padx = 10, pady = 10)
+    
+    def deleteUser(self, id, login):
+
+        if messagebox.askokcancel("Delete User", "Do you want to delete {}?".format(login), parent = self.user_list.interior):
+            
+            try:
+                url = 'https://iguard-backend.herokuapp.com/api/v1/KDY7AehrzAlOVJd-i09GVA/user/{}'.format(id)
+                res = self.session.delete(url = url)
+                print(res.text)
+            except:
+                Errors.networkConnectionError()
+                return
+            
+            for i, user in enumerate(self.list_of_users):
+                if(user == login):
+                    self.user_frames[i].destroy()
+                    del self.user_frames[i]
+                    del self.list_of_users[i]
+                    del self.list_of_ids[i]
+                    break
+
 
 
     def addRegFrame(self):
@@ -99,9 +139,13 @@ class UsersList(tk.Frame):
             'password_confirmation' : self.password_confirmation.get_data()
         }
 
-        url = "https://iguard-backend.herokuapp.com/api/v1/KDY7AehrzAlOVJd-i09GVA/register/user"
-        req = requests.post(url = url, data = params)
-        res = dict(req.json())
+        try:
+            url = "https://iguard-backend.herokuapp.com/api/v1/KDY7AehrzAlOVJd-i09GVA/register/user"
+            res = dict(self.session.post(url = url, data = params).json())
+        except:
+            Errors.networkConnectionError()
+            return
+        
         if "errors" in res.keys():
             
             error_text = ""
@@ -111,5 +155,6 @@ class UsersList(tk.Frame):
             errorLabel = tk.Label(self, bg = 'red', fg = 'white', text = error_text)
             errorLabel.pack(side = tk.TOP, fill = tk.X)
             errorLabel.bind("<Button-1>", lambda e : errorLabel.destroy())
+
         else:
-            print(res)
+            self.addUser(res)
