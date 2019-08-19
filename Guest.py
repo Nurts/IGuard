@@ -41,18 +41,22 @@ class GuestApp(tk.Tk):
         self.panedwindow.pack(fill = tk.BOTH, expand = True)
         
         self.list_frame = VerticalScrolledFrame(self.panedwindow, relief = tk.FLAT, bg = self.window_config["bg_color"])
-        self.vid_frame = tk.Frame(self.panedwindow, relief = tk.FLAT, bg = 'white')
+        self.main_vid_frame = tk.Frame(self.panedwindow, relief = tk.FLAT, bg = 'white')
         self.alert_frame = VerticalScrolledFrame(self.panedwindow, relief = tk.FLAT, bg = self.window_config["bg_color"])
         
+        self.vid_frame = tk.Frame(self.main_vid_frame)
+        self.vid_frame.pack(side = tk.TOP, fill = tk.X)
+
         self.loadVideo()
         self.loadNotifications()
 
         # self.load_video()
 
         self.panedwindow.add(self.list_frame, width = int(0.2 * screen_width))
-        self.panedwindow.add(self.vid_frame, width = int(0.65 * screen_width))
+        self.panedwindow.add(self.main_vid_frame, width = int(0.65 * screen_width))
         self.panedwindow.add(self.alert_frame)
 
+        
         self.delay = 1
 
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -88,7 +92,7 @@ class GuestApp(tk.Tk):
             self.vidListCommand(0)
         
         self.panel = tk.Label(self.vid_frame, bg = "#3A79D1")
-        self.panel.pack(side = tk.TOP, fill = tk.X, expand = False)
+        self.panel.pack(side = tk.BOTTOM, fill = tk.BOTH, expand = True)
 
         
     def vidListCommand(self, idx):
@@ -154,6 +158,6 @@ class GuestApp(tk.Tk):
         self.vidListCommand(id)
 
         alert_cam_label = BlinkingLabel(self.vid_frame, first_color = '#ff3838', second_color = '#871a1a', text = self.window_config['alert_cam_text'], fg = 'white', font = 'Sans 13', height = 3)
-        alert_cam_label.pack(side = tk.TOP, fill = tk.X, expand = True)
+        alert_cam_label.pack(side = tk.TOP, fill = tk.BOTH, expand = True)
         alert_cam_label.bind("<Button-1>", lambda e : alert_cam_label.destroy())
         # alert_cam_label.after(15000, alert_cam_label.destroy)

@@ -36,13 +36,14 @@ class PaintApp:
     # ---------- CATCH MOUSE UP ----------
  
     def left_but_down(self, event=None):
-        print("Pressed in " + str(event.x) + " " + str(event.y))
-        # Set x & y when mouse is clicked
-        self.x1_line_pt = event.x
-        self.y1_line_pt = event.y
-        self.pressed = TRUE
-        self.idx[self.line_count] = self.drawing_area.create_line(0, 0, 0, 0, smooth=TRUE, fill="green", width = 5)
-        
+        if self.line_count == 0:
+            print("Pressed in " + str(event.x) + " " + str(event.y))
+            # Set x & y when mouse is clicked
+            self.x1_line_pt = event.x
+            self.y1_line_pt = event.y
+            self.pressed = TRUE
+            self.idx[self.line_count] = self.drawing_area.create_line(0, 0, 0, 0, smooth=TRUE, fill="green", width = 5)
+            
     # ---------- CATCH MOUSE UP ----------
  
     def motion(self, event=None):
@@ -50,20 +51,20 @@ class PaintApp:
             self.drawing_area.coords(self.idx[self.line_count], self.x1_line_pt, self.y1_line_pt, event.x, event.y)
 
     def left_but_up(self, event=None):
-        
-        self.pressed = FALSE
-        # Reset the line
-        self.x2_line_pt = event.x
-        self.y2_line_pt = event.y
-        coords = [ self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt ]
-        if math.sqrt((self.x1_line_pt-self.x2_line_pt)**2 + (self.y1_line_pt-self.y2_line_pt)**2) > 25:
-            self.data[self.line_count] = coords
-            self.line_count += 1
-        else :
-            self.drawing_area.delete(self.idx[self.line_count])
-        #self.drawing_area.create_line(self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt, smooth=TRUE, fill="green", width = 5)
-        # Set x & y when mouse is released
-        
+        if self.pressed:
+            self.pressed = FALSE
+            # Reset the line
+            self.x2_line_pt = event.x
+            self.y2_line_pt = event.y
+            coords = [ self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt ]
+            if math.sqrt((self.x1_line_pt-self.x2_line_pt)**2 + (self.y1_line_pt-self.y2_line_pt)**2) > 25:
+                self.data[self.line_count] = coords
+                self.line_count += 1
+            else :
+                self.drawing_area.delete(self.idx[self.line_count])
+            #self.drawing_area.create_line(self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt, smooth=TRUE, fill="green", width = 5)
+            # Set x & y when mouse is released
+            
  
     def __init__(self, window, frame, readFile):
         y, x, _ = frame.shape
@@ -89,7 +90,7 @@ class PaintApp:
         button1.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
         button1_window = drawing_area.create_window(filename.width(), 10, anchor=NW, window=button1)
         
-        button2 = Button(drawing_area, text = "Back", command = self.erase_last_line, anchor = W)
+        button2 = Button(drawing_area, text = "Undo", command = self.erase_last_line, anchor = W)
         button2.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
         button2_window = drawing_area.create_window(filename.width(), 50, anchor=NW, window=button2)
 
