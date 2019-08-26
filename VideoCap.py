@@ -8,12 +8,13 @@ import yaml
 
 class Video:
 
-    def __init__(self, video_source, point_source):
+    def __init__(self, video_source, point_source, cam_id):
+        self.cam_id = cam_id
         self.video_source = video_source
         self.point_source = point_source
         
         self.cap = cv2.VideoCapture(self.video_source)
-
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 0)
         self.lines = []
 
         try:
@@ -25,9 +26,7 @@ class Video:
         except:
             pass
         
-        print("Video analysis started cam {}".format(video_source))
-        
-        
+        print("Video streaming started cam {}".format(video_source))
         
     def getDrawFrame(self):
         ret, frame = self.cap.read()
@@ -40,12 +39,19 @@ class Video:
         
 
     def getFrame(self):
-
-        ret, frame_out = self.cap.read()
-        if not ret:
+        try:
+            for j in range(4):
+                self.cap.grab()
+            ret, frame_out = self.cap.read()
+            if not ret:
+                self.cap.release()
+                self.cap = cv2.VideoCapture(self.video_source)
+                return None
+            else:
+                return frame_out
+        except:
+            print("getFrame error")
             return None
-        else:
-            return frame_out
 
     # Release the video source when the object is destroyed
     def __del__(self):

@@ -1,3 +1,5 @@
 from database import Database
 database = Database("alert_db.db")
-database.insert(0, "C:\\Users\\Nurts\\Pictures\\images.jpg")
+
+for i in range(100):
+    database.insert(15, "C:\\Users\\Nurts\\Pictures\\test_bit.jpg")
